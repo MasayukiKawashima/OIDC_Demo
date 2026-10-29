@@ -1,0 +1,22 @@
+Config.xcconfig
+xcuserdata/
+*.p12
+*.mobileprovision
+*.p8
+.env
+
+# Claude Code用のドキュメント（手元だけで使う）
+CLAUDE.local.md
+.claude-docs/
+
+# ビルド成果物（展開済みのInfo.plistにclient_idが入る）
+DerivedData/
+build/
+*.xcarchive
+*.ipa
+
+# テスト結果（ログやスクリーンショットを含む）
+*.xcresult
+
+# macOS
+.DS_Store

@@ -1,0 +1,6 @@
+// Config.sample.xcconfig
+// このファイルを Config.xcconfig という名前でコピーし、自分の値に書き換える
+// Config.xcconfig は .gitignore で除外されているため、コミットされない
+GOOGLE_CLIENT_ID = YOUR_CLIENT_ID.apps.googleusercontent.com
+GOOGLE_REVERSED_CLIENT_ID = com.googleusercontent.apps.YOUR_CLIENT_ID
+PRODUCT_BUNDLE_IDENTIFIER = com.example.YOUR_BUNDLE_ID

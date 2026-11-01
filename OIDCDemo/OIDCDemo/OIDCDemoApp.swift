@@ -9,9 +9,16 @@ import SwiftUI
 
 @main
 struct OIDCDemoApp: App {
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
+
+  init() {
+#if DEBUG
+    runSecretChecks()
+#endif
+  }
+  
+  var body: some Scene {
+    WindowGroup {
+      ContentView()
     }
+  }
 }

@@ -23,12 +23,6 @@ nonisolated enum KeychainService: Sendable {
   /// 今回のプロジェクトではデータベースを含むバックエンドを作らないので、この保存先をバックエンドのデータベースとみたてている
   case mock
 
-#if DEBUG
-  /// 動作確認用の一時的な保存先
-  /// 処理の確認時などに上記三つのサービスに保存されているデータに影響がないように専用の保存先を作っている
-  case check(String)
-#endif
-
   /// Keychain の kSecAttrService に渡す文字列（例：<バンドルID>.selfmade）
   var name: String {
     let base = Bundle.main.bundleIdentifier ?? "oidcdemo"
@@ -40,9 +34,6 @@ nonisolated enum KeychainService: Sendable {
     case .selfMade: return "selfmade"
     case .appAuth: return "appauth"
     case .mock: return "mock"
-#if DEBUG
-    case .check(let label): return "check-\(label)"
-#endif
     }
   }
 }

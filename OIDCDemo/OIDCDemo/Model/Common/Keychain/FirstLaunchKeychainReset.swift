@@ -28,14 +28,11 @@ nonisolated enum FirstLaunchKeychainReset {
             try AllKeychainItemsEraser.erase()
             // 削除に成功したときだけフラグを立てる（先に立てると、失敗したときに二度と削除されない）
             defaults.set(true, forKey: launchedKey)
-            print("[FirstLaunchKeychainReset] 初回起動：Keychain の項目を確認・削除しました")
             return true
         } catch let error as KeychainError {
             // フラグは立てない（次回の起動でもう一度削除を試みる）
-            print("[FirstLaunchKeychainReset] Keychain の削除に失敗しました: \(error)")
             return false
         } catch {
-            print("[FirstLaunchKeychainReset] Keychain の削除に失敗しました: \(type(of: error))")
             return false
         }
     }

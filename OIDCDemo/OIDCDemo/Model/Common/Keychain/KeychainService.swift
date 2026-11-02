@@ -25,7 +25,7 @@ nonisolated enum KeychainService: Sendable {
 
 #if DEBUG
   /// 動作確認用の一時的な保存先
-  /// 処理の確認時などに上記三つのサービスに保存されているデータに影響がいないように専用の保存先を作っている
+  /// 処理の確認時などに上記三つのサービスに保存されているデータに影響がないように専用の保存先を作っている
   case check(String)
 #endif
 

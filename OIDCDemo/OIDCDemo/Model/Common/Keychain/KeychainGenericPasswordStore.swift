@@ -111,7 +111,7 @@ nonisolated struct KeychainGenericPasswordStore: Sendable {
     }
   }
 
-
+  
   // MARK: - HelperMethods
 
   /// generic password の1項目（service と account で特定）を指すクエリの作成メソッド

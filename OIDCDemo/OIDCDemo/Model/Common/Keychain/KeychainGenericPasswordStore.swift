@@ -67,8 +67,11 @@ nonisolated struct KeychainGenericPasswordStore: Sendable {
 
   func load(account: String) throws -> Data? {
 
+    // クエリの作成
     var query = genericPasswordItemQuery(account: account)
+    // 検索結果に実際のデータを含めるかどうかの設定
     query[kSecReturnData as String] = true
+    // 取得するのはヒットした結果の最初の一件のみ
     query[kSecMatchLimit as String] = kSecMatchLimitOne
 
     var result: CFTypeRef?
@@ -76,6 +79,7 @@ nonisolated struct KeychainGenericPasswordStore: Sendable {
     // クエリの条件に合うデータの検索
     let status = SecItemCopyMatching(query as CFDictionary, &result)
     switch status {
+      // 条件に合うデータが見つかった場合
     case errSecSuccess:
       guard let data = result as? Data else { throw KeychainError.unexpectedData }
       return data

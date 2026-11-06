@@ -14,6 +14,4 @@ nonisolated enum BackendError: Error {
     case unauthorized
     /// リフレッシュ：リフレッシュトークンが無効（期限切れ、失効済みなど）。ログインし直しが必要
     case invalidRefreshToken
-    case memberNotFound
-    case network
 }

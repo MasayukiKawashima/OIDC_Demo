@@ -8,7 +8,6 @@
 import Foundation
 
 /// アプリの設定値（Info.plist から読む）。Info.plist を読むのはこの型だけにする。
-/// 値は公開してはいけないものを含むので、出力しない。
 nonisolated enum AppConfig {
     /// Google の OAuth クライアントの client_id（Info.plist の GoogleClientID）
     static let googleClientID: String = readRequired("GoogleClientID")

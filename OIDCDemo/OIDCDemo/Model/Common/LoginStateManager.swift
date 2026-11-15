@@ -9,7 +9,7 @@ import Foundation
 /// 自社トークンを使って、アプリのログイン状態を管理する（自前実装・AppAuth版で共通）。
 /// - ログイン状態を変える処理（バックエンドへのログイン、トークンの保存・読み込み、リフレッシュ、ログアウト）を受け持つ
 /// - ログインが必要な API は、withValidAccessToken で有効なアクセストークンを借りて、呼び出し側が呼ぶ。個々の API（会員情報など）は知らない
-/// - Google とのやり取り（IDトークンを得るまで）は行わない。それは IDTokenProvider が受け持つ
+/// - Google とのやり取り（IDトークンを得るまで）は行わない。それは GoogleTokenProvider が受け持つ
 actor LoginStateManager {
   private let backend: any BackendClientProtocol
   private let tokenStore: SessionTokenStore

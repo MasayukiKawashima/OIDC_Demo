@@ -8,24 +8,24 @@
 import Foundation
 
 // 認証処理の共通の窓口（ログイン、ログアウト、起動時の復元、会員情報の取得）。
-/// - IDトークンを得る部分は IDTokenProvider に、ログイン状態の管理は LoginStateManager に任せる
+/// - IDトークンを得る部分は GoogleTokenProvider に、ログイン状態の管理は LoginStateManager に任せる
 /// - ログインが必要な API（会員情報）は、LoginStateManager.withValidAccessToken で有効なアクセストークンを借りて呼ぶ
-/// 自前実装と AppAuth版は、IDTokenProvider と保存先（KeychainService）が違う AuthService として作る。
+/// 自前実装と AppAuth版は、GoogleTokenProvider と保存先（KeychainService）が違う AuthService として作る。
 @MainActor
 final class AuthService {
 
-  private let idTokenProvider: any IDTokenProvider
+  private let GoogleTokenProvider: any GoogleTokenProvider
   private let loginState: LoginStateManager
   /// ログインが必要な API を呼ぶためのバックエンド（LoginStateManager に渡したものと同じ）
   private let backend: any BackendClientProtocol
   /// 起動時の復元を行うか（FirstLaunchKeychainReset が削除に失敗した場合は false）
   private let restoresSession: Bool
 
-  init(idTokenProvider: any IDTokenProvider,
+  init(GoogleTokenProvider: any GoogleTokenProvider,
        loginState: LoginStateManager,
        backend: any BackendClientProtocol,
        restoresSession: Bool) {
-    self.idTokenProvider = idTokenProvider
+    self.GoogleTokenProvider = GoogleTokenProvider
     self.loginState = loginState
     self.backend = backend
     self.restoresSession = restoresSession
@@ -55,7 +55,7 @@ final class AuthService {
   /// Google でログインし、バックエンドにログインして、会員情報を返す。
   func login() async throws -> MemberInfo {
     // IDトークンはこの関数の中だけで使い、終われば破棄される（保存しない）
-    let idToken = try await idTokenProvider.fetchVerifiedIDToken()
+    let idToken = try await GoogleTokenProvider.fetchVerifiedIDToken()
     let status = try await loginState.login(idToken: idToken)
     print("[Auth] login: 成功（\(status == .existing ? "既存会員" : "新規登録")）")
     return try await memberInfo()

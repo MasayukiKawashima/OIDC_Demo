@@ -39,12 +39,15 @@ actor LoginStateManager {
   // MARK: - ログイン
 
   /// 確認済みの IDトークンでバックエンドにログインし、受け取ったトークンを保存する。
-  func login(idToken: Secret) async throws -> MemberStatus {
+  func login(idToken: Secret, name: String) async throws -> MemberStatus {
     let result: LoginResult
     do {
-      result = try await backend.login(idToken: idToken)
+      result = try await backend.login(LoginRequest(idToken: idToken, name: name))
     } catch BackendError.invalidIDToken {
       print("[LoginState] login: 失敗（バックエンドが IDトークンを受け付けなかった）")
+      throw LoginStateError.loginRejected
+    } catch BackendError.invalidName {
+      print("[LoginState] login: 失敗（バックエンドが名前を受け付けなかった）")
       throw LoginStateError.loginRejected
     }
     try replaceTokens(with: result.tokens.sessionTokens())

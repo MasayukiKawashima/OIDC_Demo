@@ -43,8 +43,16 @@ actor MockBackendServer {
   // MARK: ログイン
 
   /// ログイン：IDトークンを確認し、会員を見分けて、新しいセッションを発行する。
-  func handleLogin(idToken: Secret) throws -> LoginResult {
-    let claims = try verifiedClaims(of: idToken)
+  /// 名前はアプリが申告した値なので、表示にだけ使い、会員の識別には使わない（識別は IDトークンの sub で行う）。
+  func handleLogin(_ request: LoginRequest) throws -> LoginResult {
+    let claims = try verifiedClaims(of: request.idToken)
+
+    // 申告された名前を確認する
+    let trimmedName = request.name.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmedName.isEmpty, trimmedName.count <= 100 else {
+      print("[MockServer] login: 失敗（name: NG）")
+      throw BackendError.invalidName
+    }
 
     // sub のハッシュ値で会員を見分ける
     let memberKey = SHA256Hasher.base64URLDigest(of: claims.sub)
@@ -56,7 +64,7 @@ actor MockBackendServer {
 
     // 会員記録の保存
     // ログイン日時を保存するために新しいMemberRecordを作る必要があり、そのための名前ごと保存する
-    members[memberKey] = MemberRecord(name: claims.name ?? "（名前なし）", loggedInAt: Date())
+    members[memberKey] = MemberRecord(name: trimmedName, loggedInAt: Date())
     // 会員の記録を先に保存し、セッションはその後に作る（セッションが存在しない会員を指すことがないように）
     try saveMembers(members)
 
@@ -220,7 +228,7 @@ actor MockBackendServer {
     let name: String
     let loggedInAt: Date
   }
-
+  
   // MARK: セッション記録
 
   nonisolated private struct SessionRecord: Codable {

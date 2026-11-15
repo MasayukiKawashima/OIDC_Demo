@@ -57,12 +57,13 @@ final class AuthService {
 
   /// Google でログインし、バックエンドにログインして、会員情報を返す。
   func login() async throws -> MemberInfo {
-    // IDトークンはこの関数の中だけで使い、終われば破棄される（保存しない）
-    let idToken = try await GoogleTokenProvider.fetchVerifiedIDToken()
-    let status = try await loginState.login(idToken: idToken)
-    print("[Auth] login: 成功（\(status == .existing ? "既存会員" : "新規登録")）")
-    return try await memberInfo()
-  }
+      // Google のトークンはこの関数の中だけで使い、終われば破棄される（保存しない）
+      let googleTokens = try await tokenProvider.fetchVerifiedTokens()
+      let name = try await profileClient.fetchDisplayName(accessToken: googleTokens.accessToken)
+      let status = try await loginState.login(idToken: googleTokens.idToken, name: name)
+      print("[Auth] login: 成功（\(status == .existing ? "既存会員" : "新規登録")）")
+      return try await memberInfo()
+    }
 
   // MARK: - 会員情報
 

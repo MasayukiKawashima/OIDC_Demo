@@ -23,10 +23,10 @@ actor BackendClient: BackendClientProtocol {
         self.latency = latency
     }
 
-    func login(idToken: Secret) async throws -> LoginResult {
-        try await simulateLatency()
-        return try await server.handleLogin(idToken: idToken)
-    }
+  func login(_ request: LoginRequest) async throws -> LoginResult {
+          try await simulateLatency()
+          return try await server.handleLogin(request)
+      }
 
     func refresh(refreshToken: Secret) async throws -> BackendTokenResponse {
         try await simulateLatency()

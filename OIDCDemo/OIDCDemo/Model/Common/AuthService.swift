@@ -14,18 +14,21 @@ import Foundation
 @MainActor
 final class AuthService {
 
-  private let GoogleTokenProvider: any GoogleTokenProvider
+  private let tokenProvider: any GoogleTokenProvider
+  private let profileClient: any GoogleProfileClientProtocol
   private let loginState: LoginStateManager
   /// ログインが必要な API を呼ぶためのバックエンド（LoginStateManager に渡したものと同じ）
   private let backend: any BackendClientProtocol
   /// 起動時の復元を行うか（FirstLaunchKeychainReset が削除に失敗した場合は false）
   private let restoresSession: Bool
 
-  init(GoogleTokenProvider: any GoogleTokenProvider,
+  init(tokenProvider: any GoogleTokenProvider,
+       profileClient: any GoogleProfileClientProtocol,
        loginState: LoginStateManager,
        backend: any BackendClientProtocol,
        restoresSession: Bool) {
-    self.GoogleTokenProvider = GoogleTokenProvider
+    self.tokenProvider = tokenProvider
+    self.profileClient = profileClient
     self.loginState = loginState
     self.backend = backend
     self.restoresSession = restoresSession

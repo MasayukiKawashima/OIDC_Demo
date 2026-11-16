@@ -28,7 +28,7 @@ actor MockBackendServer {
 
   /// - Parameters:
   ///   - expectedAudience: IDトークンの aud として受け付ける値（アプリの client_id）
-  ///   - service: 記録の保存先。通常は .mock（動作確認では .check(...) を渡す）
+  ///   - service: 記録の保存先
   ///   - accessTokenLifetime: 発行するアクセストークンの有効期間（秒）
   init(expectedAudience: String,
        service: KeychainService = .mock,

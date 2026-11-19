@@ -17,5 +17,7 @@
 	</array>
 	<key>GoogleClientID</key>
 	<string>$(GOOGLE_CLIENT_ID)</string>
+	<key>GoogleReversedClientID</key>
+	<string>$(GOOGLE_REVERSED_CLIENT_ID)</string>
 </dict>
 </plist>

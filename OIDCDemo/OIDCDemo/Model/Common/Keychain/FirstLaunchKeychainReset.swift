@@ -17,7 +17,7 @@ nonisolated enum FirstLaunchKeychainReset {
 
     /// Keychain を読むどの処理よりも先に呼ぶ。
     /// - Returns: 前のインストールのデータが残っていない状態なら true。
-    ///   削除に失敗した場合は false（呼び出し側は、Keychain からのログイン状態の復元を行わない）
+    ///   削除に失敗した場合は false（呼び出し側は、Keychain からのサインイン状態の復元を行わない）
     @discardableResult
     static func run(defaults: UserDefaults = .standard) -> Bool {
         // いつもの起動：すでに削除済み

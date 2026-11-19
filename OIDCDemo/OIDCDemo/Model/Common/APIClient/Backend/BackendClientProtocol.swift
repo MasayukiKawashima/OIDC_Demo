@@ -8,9 +8,9 @@ import Foundation
 
 nonisolated protocol BackendClientProtocol: Sendable {
   
-  func login(_ request: LoginRequest) async throws -> LoginResult
+  func signIn(_ request: SignInRequest) async throws -> SignInResult
   func refresh(refreshToken: Secret) async throws -> BackendTokenResponse
   func fetchMemberInfo(accessToken: Secret) async throws -> MemberInfo
-  func logout(refreshToken: Secret) async throws
+  func signOut(refreshToken: Secret) async throws
 }
 

@@ -12,7 +12,7 @@ import Foundation
 /// - IDトークン：クレーム（iss・aud・exp）だけを確認する。署名は検証しない
 /// - 会員：sub のハッシュ値で見分ける（sub そのものは保存しない）
 /// - 自社トークン：発行したトークンのハッシュ値だけを記録し、送られてきたトークンと照合する
-/// - セッションは1つだけ。ログインのたびに置き換える
+/// - セッションは1つだけ。サインインのたびに置き換える
 actor MockBackendServer {
 
   private let keychainStore: KeychainGenericPasswordStore
@@ -40,17 +40,17 @@ actor MockBackendServer {
 
   // MARK: - エンドポイント
 
-  // MARK: ログイン
+  // MARK: サインイン
 
-  /// ログイン：IDトークンを確認し、会員を見分けて、新しいセッションを発行する。
+  /// サインイン：IDトークンを確認し、会員を見分けて、新しいセッションを発行する。
   /// 名前はアプリが申告した値なので、表示にだけ使い、会員の識別には使わない（識別は IDトークンの sub で行う）。
-  func handleLogin(_ request: LoginRequest) throws -> LoginResult {
+  func handleSignIn(_ request: SignInRequest) throws -> SignInResult {
     let claims = try verifiedClaims(of: request.idToken)
 
     // 申告された名前を確認する
     let trimmedName = request.name.trimmingCharacters(in: .whitespacesAndNewlines)
     guard !trimmedName.isEmpty, trimmedName.count <= 100 else {
-      print("[MockServer] login: 失敗（name: NG）")
+      print("[MockServer] signIn: 失敗（name: NG）")
       throw BackendError.invalidName
     }
 
@@ -63,8 +63,8 @@ actor MockBackendServer {
     let isExisting = members[memberKey] != nil
 
     // 会員記録の保存
-    // ログイン日時を保存するために新しいMemberRecordを作る必要があり、そのための名前ごと保存する
-    members[memberKey] = MemberRecord(name: trimmedName, loggedInAt: Date())
+    // サインイン日時を保存するために新しいMemberRecordを作る必要があり、そのための名前ごと保存する
+    members[memberKey] = MemberRecord(name: trimmedName, signedInAt: Date())
     // 会員の記録を先に保存し、セッションはその後に作る（セッションが存在しない会員を指すことがないように）
     try saveMembers(members)
 
@@ -72,8 +72,8 @@ actor MockBackendServer {
     let (response, session) = try issueSession(memberKey: memberKey, previousRefreshTokenHash: nil)
     try saveSession(session)
 
-    print("[MockServer] login: 成功（\(isExisting ? "既存会員" : "新規登録")）")
-    return LoginResult(tokens: response, memberStatus: isExisting ? .existing : .newlyRegistered)
+    print("[MockServer] signIn: 成功（\(isExisting ? "既存会員" : "新規登録")）")
+    return SignInResult(tokens: response, memberStatus: isExisting ? .existing : .newlyRegistered)
   }
 
   // MARK: リフレッシュ
@@ -109,7 +109,7 @@ actor MockBackendServer {
 
   // MARK: 会員情報の取得
 
-  /// 会員情報：アクセストークンを照合し、会員の名前とログイン日時を返す。
+  /// 会員情報：アクセストークンを照合し、会員の名前とサインイン日時を返す。
   func handleMemberInfo(accessToken: Secret) throws -> MemberInfo {
     let presentedHash = SHA256Hasher.base64URLDigest(of: accessToken.reveal())
     guard let session = try loadSession(), presentedHash == session.accessTokenHash else {
@@ -123,28 +123,28 @@ actor MockBackendServer {
     guard let record = try loadMembers()[session.memberKey] else {
       // 会員の記録はセッションより先に保存するため、通常は起こらない。
       // 万一食い違った場合は、壊れたセッションとして無効にし、401 を返す
-      //（アプリはリフレッシュに失敗し、ログインし直しになる）
+      //（アプリはリフレッシュに失敗し、サインインし直しになる）
       try keychainStore.delete(account: sessionAccount)
       print("[MockServer] memberInfo: 401（セッションの会員の記録がない。セッションを無効にした）")
       throw BackendError.unauthorized
     }
 
     print("[MockServer] memberInfo: 成功（会員情報を返した）")
-    return MemberInfo(name: record.name, loggedInAt: record.loggedInAt)
+    return MemberInfo(name: record.name, signedInAt: record.signedInAt)
   }
 
-  // MARK: ログアウト
+  // MARK: サインアウト
 
-  /// ログアウト：リフレッシュトークンが一致すれば、セッションを無効にする。
-  func handleLogout(refreshToken: Secret) throws {
+  /// サインアウト：リフレッシュトークンが一致すれば、セッションを無効にする。
+  func handleSignOut(refreshToken: Secret) throws {
     let presentedHash = SHA256Hasher.base64URLDigest(of: refreshToken.reveal())
     if let session = try loadSession(), presentedHash == session.refreshTokenHash {
-      // セッションを無効にする。会員の記録は消さない（本物もログアウトで会員情報を消さない）
+      // セッションを無効にする。会員の記録は消さない（本物もサインアウトで会員情報を消さない）
       try keychainStore.delete(account: sessionAccount)
-      print("[MockServer] logout: 成功（セッションを無効にした）")
+      print("[MockServer] signOut: 成功（セッションを無効にした）")
     } else {
-      // すでに無効なトークンでも、ログアウトの目的は果たされているので成功を返す
-      print("[MockServer] logout: 成功（対象のセッションなし）")
+      // すでに無効なトークンでも、サインアウトの目的は果たされているので成功を返す
+      print("[MockServer] signOut: 成功（対象のセッションなし）")
     }
   }
 
@@ -162,19 +162,19 @@ actor MockBackendServer {
           let payload = Base64URL.decode(String(parts[1])),
           let claims = try? JSONDecoder().decode(IDTokenClaims.self, from: payload)
     else {
-      print("[MockServer] login: 失敗（IDトークンを読めない）")
+      print("[MockServer] signIn: 失敗（IDトークンを読めない）")
       throw BackendError.invalidIDToken
     }
     guard allowedIssuers.contains(claims.iss) else {
-      print("[MockServer] login: 失敗（iss: NG）")
+      print("[MockServer] signIn: 失敗（iss: NG）")
       throw BackendError.invalidIDToken
     }
     guard claims.aud == expectedAudience else {
-      print("[MockServer] login: 失敗（aud: NG）")
+      print("[MockServer] signIn: 失敗（aud: NG）")
       throw BackendError.invalidIDToken
     }
     guard Date() < Date(timeIntervalSince1970: claims.exp) else {
-      print("[MockServer] login: 失敗（exp: NG）")
+      print("[MockServer] signIn: 失敗（exp: NG）")
       throw BackendError.invalidIDToken
     }
     return claims
@@ -226,7 +226,7 @@ actor MockBackendServer {
 
   nonisolated private struct MemberRecord: Codable {
     let name: String
-    let loggedInAt: Date
+    let signedInAt: Date
   }
   
   // MARK: セッション記録

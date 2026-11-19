@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// ログインした会員が、既存の会員か新規登録か。
+/// サインインした会員が、既存の会員か新規登録か。
 nonisolated enum MemberStatus: Sendable {
     case existing
     case newlyRegistered

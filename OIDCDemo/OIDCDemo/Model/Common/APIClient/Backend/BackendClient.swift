@@ -23,9 +23,9 @@ actor BackendClient: BackendClientProtocol {
         self.latency = latency
     }
 
-  func login(_ request: LoginRequest) async throws -> LoginResult {
+  func signIn(_ request: SignInRequest) async throws -> SignInResult {
           try await simulateLatency()
-          return try await server.handleLogin(request)
+          return try await server.handleSignIn(request)
       }
 
     func refresh(refreshToken: Secret) async throws -> BackendTokenResponse {
@@ -38,9 +38,9 @@ actor BackendClient: BackendClientProtocol {
         return try await server.handleMemberInfo(accessToken: accessToken)
     }
 
-    func logout(refreshToken: Secret) async throws {
+    func signOut(refreshToken: Secret) async throws {
         try await simulateLatency()
-        try await server.handleLogout(refreshToken: refreshToken)
+        try await server.handleSignOut(refreshToken: refreshToken)
     }
 
     /// 通信を模した待ち時間を入れる。

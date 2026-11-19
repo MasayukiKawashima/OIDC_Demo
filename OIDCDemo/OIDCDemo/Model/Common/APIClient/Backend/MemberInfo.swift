@@ -11,5 +11,5 @@ import Foundation
 /// 名前は個人情報なので、print などで出力しない（出すのは「取得できたかどうか」だけ）。
 nonisolated struct MemberInfo: Sendable {
     let name: String
-    let loggedInAt: Date
+    let signedInAt: Date
 }

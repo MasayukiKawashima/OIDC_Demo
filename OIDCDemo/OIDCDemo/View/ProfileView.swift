@@ -10,8 +10,12 @@ import SwiftUI
 /// トークン、sub、検証結果などの内部情報は表示しない。
 struct ProfileView: View {
 
+  // MARK: - Properties
+
   /// 会員情報。名前は個人情報のため print に渡さない
   let memberInfo: MemberInfo
+
+  // MARK: - Body
 
   var body: some View {
     NavigationStack {
@@ -52,6 +56,8 @@ struct ProfileView: View {
     }
   }
 }
+
+// MARK: - Preview
 
 #Preview {
   ProfileView(memberInfo: MemberInfo(name: "山田 太郎", signedInAt: .now))

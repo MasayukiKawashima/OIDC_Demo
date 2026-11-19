@@ -14,17 +14,21 @@ import SwiftUI
 /// サインイン前の画面。
 /// 画面が持つのは表示のための状態（処理中かどうか、エラーの文言）だけにし、Googleのトークンは持たない。
 struct SignInView: View {
-  
+
+  // MARK: - Properties
+
   /// サインインの処理中かどうか。処理中はボタンを無効にし、認可リクエストが2つ同時に始まらないようにする
   @State private var isSigningIn: Bool
   /// サインインに失敗したときの文言。キャンセルのとき（サインイン画面を閉じただけ）は表示しない
   @State private var errorMessage: String?
-  
+
   init(isSigningIn: Bool = false, errorMessage: String? = nil) {
     _isSigningIn = State(initialValue: isSigningIn)
     _errorMessage = State(initialValue: errorMessage)
   }
-  
+
+  // MARK: - Body
+
   var body: some View {
     VStack(spacing: 0) {
       Spacer()
@@ -49,14 +53,14 @@ struct SignInView: View {
   }
 }
 
+// MARK: - Preview
+
 #Preview("サインイン前") {
   SignInView()
 }
-
 #Preview("処理中") {
   SignInView(isSigningIn: true)
 }
-
 #Preview("エラー") {
   SignInView(errorMessage: "サインインに失敗しました。もう一度お試しください。")
 }

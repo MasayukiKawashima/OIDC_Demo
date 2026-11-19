@@ -20,3 +20,6 @@ build/
 
 # macOS
 .DS_Store
+
+# Googleのサインインボタンの画像（各自が公式サイトから入手する）
+OIDCDemo/OIDCDemo/Assets.xcassets/SignInWithGoogle.imageset/

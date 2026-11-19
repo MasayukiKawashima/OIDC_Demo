@@ -16,6 +16,7 @@ final class AuthService {
 
   private let tokenProvider: any GoogleTokenProvider
   private let profileClient: any GoogleProfileClientProtocol
+  private let revocationClient: any GoogleTokenRevocationClientProtocol
   private let signInState: SignInStateManager
   /// サインインが必要な API を呼ぶためのバックエンド（SignInStateManager に渡したものと同じ）
   private let backend: any BackendClientProtocol
@@ -24,11 +25,13 @@ final class AuthService {
 
   init(tokenProvider: any GoogleTokenProvider,
        profileClient: any GoogleProfileClientProtocol,
+       revocationClient: any GoogleTokenRevocationClientProtocol,
        signInState: SignInStateManager,
        backend: any BackendClientProtocol,
        restoresSession: Bool) {
     self.tokenProvider = tokenProvider
     self.profileClient = profileClient
+    self.revocationClient = revocationClient
     self.signInState = signInState
     self.backend = backend
     self.restoresSession = restoresSession
@@ -56,14 +59,44 @@ final class AuthService {
   // MARK: - サインイン
 
   /// Google でサインインし、バックエンドにサインインして、会員情報を返す。
+  /// // Google のトークンはこの関数の中だけで使い、終われば破棄される（保存しない）
   func signIn() async throws -> MemberInfo {
-      // Google のトークンはこの関数の中だけで使い、終われば破棄される（保存しない）
-      let googleTokens = try await tokenProvider.fetchVerifiedTokens()
-      let name = try await profileClient.fetchDisplayName(accessToken: googleTokens.accessToken)
-      let status = try await signInState.signIn(idToken: googleTokens.idToken, name: name)
-      print("[Auth] signIn: 成功（\(status == .existing ? "既存会員" : "新規登録")）")
-      return try await memberInfo()
+
+    // 各種トークンの取得
+    let googleTokens = try await tokenProvider.fetchVerifiedTokens()
+    // People API の結果は、失効を済ませるまで投げずに取っておく
+    let nameResult: Result<String, any Error>
+    do {
+      // PeopleAPIにアクセスしてリソースの取得
+      nameResult = .success(try await profileClient.fetchDisplayName(accessToken: googleTokens.accessToken))
+    } catch {
+      // PeopleAPIが失敗してもここではエラーを投げない
+      // なぜならPeopleAPIの成否にかかわらずアクセストークンの失効を行う必要があり、ここで投げると失効処理まで進まないから
+      nameResult = .failure(error)
     }
+
+    //　アクセストークンの失効
+    // People API の成否を問わず、使い終わったアクセストークンを失効させる（対応するリフレッシュトークンもあわせて無効になる）
+    do {
+      try await revocationClient.revoke(token: googleTokens.accessToken)
+    } catch {
+      // People API も失敗していた場合は、原因である People API のエラーを投げる
+      if case .failure(let profileError) = nameResult {
+        throw profileError
+      }
+      // 失効に失敗したら、サインイン全体を失敗にする（モックへのサインインには進まない）
+      throw error
+    }
+
+    // People API が失敗しているときはここでエラーを投げる
+    // この段階であればアクセストークンの失効が完了しているので投げても問題なし
+    let name = try nameResult.get()
+
+    //　自社バックエンドにアクセスして会員情報の取得と自社トークンの保存
+    let status = try await signInState.signIn(idToken: googleTokens.idToken, name: name)
+    print("[Auth] signIn: 成功（\(status == .existing ? "既存会員" : "新規登録")）")
+    return try await memberInfo()
+  }
 
   // MARK: - 会員情報
 

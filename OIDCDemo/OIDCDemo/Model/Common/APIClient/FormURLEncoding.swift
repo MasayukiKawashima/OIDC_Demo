@@ -8,6 +8,7 @@
 import Foundation
 /// Googleに POSTでデータを送るときにリクエストボディを生成するモジュール
 /// application/x-www-form-urlencoded 形式のボディを作る（トークン交換、失効などで使用）。
+/// application/x-www-form-urlencoded はOAuthで定められている認可サーバーにPOSTするときの形式。
 ///
 /// ⚫︎変換サンプル
 /// FormURLEncoding.encode([("redirect_uri", "com.example.app:/oauth2redirect"),("code", "ab/cd+ef"),])

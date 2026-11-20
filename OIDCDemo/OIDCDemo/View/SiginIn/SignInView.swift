@@ -72,27 +72,28 @@ struct SignInView: View {
 
 /// プレビュー用のサインインの相手。決まった結果を、決まった時間の後に返す。
 private struct PreviewSignInPerformer: SignInPerforming {
-  /// サインインの結果（成功なら会員情報、失敗ならエラー）
-  var result: Result<MemberInfo, any Error> = .success(MemberInfo(name: "山田 太郎", signedInAt: .now))
+  /// サインインの結果（失敗させる場合はエラーを入れる）
+  var result: Result<Void, any Error> = .success(())
   /// 結果を返すまでの時間（処理中の表示を確かめるため）
   var delay: Duration = .seconds(2)
 
-  func signIn() async throws -> MemberInfo {
+  func signIn() async throws {
     try await Task.sleep(for: delay)
-    return try result.get()
+    try result.get()
   }
 }
 
+/// プレビュー用の失敗
+private struct PreviewSignInError: Error {}
+
 #Preview("サインイン前") {
-  SignInView(authService: PreviewSignInPerformer(), onSignedIn: { _ in })
+  SignInView(sessionState: PreviewSignInPerformer())
 }
 #Preview("処理中") {
-  SignInView(authService: PreviewSignInPerformer(), isSigningIn: true, onSignedIn: { _ in })
+  SignInView(isSigningIn: true, sessionState: PreviewSignInPerformer())
 }
 #Preview("エラー") {
   SignInView(
-    authService: PreviewSignInPerformer(),
-    errorMessage: "サインインに失敗しました。もう一度お試しください。",
-    onSignedIn: { _ in }
+    errorMessage: "サインインに失敗しました。もう一度お試しください。", sessionState: PreviewSignInPerformer()
   )
 }

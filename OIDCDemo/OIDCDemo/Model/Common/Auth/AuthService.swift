@@ -56,8 +56,22 @@ final class AuthService {
     }
   }
 
-  // MARK: - サインイン
+  // MARK: - 会員情報
 
+  /// 会員情報を取得する（サインインが必要な API）。
+  func memberInfo() async throws -> MemberInfo {
+    let backend = self.backend
+    let info = try await signInState.withValidAccessToken { accessToken in
+      try await backend.fetchMemberInfo(accessToken: accessToken)
+    }
+    print("[Auth] memberInfo: 取得できた")
+    return info
+  }
+}
+
+// MARK: - サインイン
+
+extension AuthService: SignInPerforming {
   /// Google でサインインし、バックエンドにサインインして、会員情報を返す。
   /// // Google のトークンはこの関数の中だけで使い、終われば破棄される（保存しない）
   func signIn() async throws -> MemberInfo {
@@ -97,21 +111,10 @@ final class AuthService {
     print("[Auth] signIn: 成功（\(status == .existing ? "既存会員" : "新規登録")）")
     return try await memberInfo()
   }
+}
 
-  // MARK: - 会員情報
-
-  /// 会員情報を取得する（サインインが必要な API）。
-  func memberInfo() async throws -> MemberInfo {
-    let backend = self.backend
-    let info = try await signInState.withValidAccessToken { accessToken in
-      try await backend.fetchMemberInfo(accessToken: accessToken)
-    }
-    print("[Auth] memberInfo: 取得できた")
-    return info
-  }
-
-  // MARK: - サインアウト
-
+// MARK: - サインアウト
+extension AuthService: SignOutPerforming {
   /// サインアウトする。
   func signOut() async {
     await signInState.signOut()

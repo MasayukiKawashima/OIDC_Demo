@@ -10,5 +10,5 @@ import Foundation
 /// サインイン機能を有している画面が依存するプロトコル。
 @MainActor
 protocol SignInPerforming {
-  func signIn() async throws -> MemberInfo
+  func signIn() async throws
 }

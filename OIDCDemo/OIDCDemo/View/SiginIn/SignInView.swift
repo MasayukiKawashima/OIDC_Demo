@@ -22,12 +22,13 @@ struct SignInView: View {
   /// サインインに失敗したときの文言。キャンセルのとき（サインイン画面を閉じただけ）は表示しない
   @State private var errorMessage: String?
 
-  private let authService: AuthService?
+  // SignInのみしかできない形で依存
+  private let sessionState: any SignInPerforming
 
-  init(isSigningIn: Bool = false, errorMessage: String? = nil, authService: AuthService? = nil) {
+  init(isSigningIn: Bool = false, errorMessage: String? = nil, sessionState: any SignInPerforming) {
     _isSigningIn = State(initialValue: isSigningIn)
     _errorMessage = State(initialValue: errorMessage)
-    self.authService = authService
+    self.sessionState = sessionState
   }
 
   // MARK: - Body
@@ -69,12 +70,29 @@ struct SignInView: View {
 
 // MARK: - Preview
 
+/// プレビュー用のサインインの相手。決まった結果を、決まった時間の後に返す。
+private struct PreviewSignInPerformer: SignInPerforming {
+  /// サインインの結果（成功なら会員情報、失敗ならエラー）
+  var result: Result<MemberInfo, any Error> = .success(MemberInfo(name: "山田 太郎", signedInAt: .now))
+  /// 結果を返すまでの時間（処理中の表示を確かめるため）
+  var delay: Duration = .seconds(2)
+
+  func signIn() async throws -> MemberInfo {
+    try await Task.sleep(for: delay)
+    return try result.get()
+  }
+}
+
 #Preview("サインイン前") {
-  SignInView()
+  SignInView(authService: PreviewSignInPerformer(), onSignedIn: { _ in })
 }
 #Preview("処理中") {
-  SignInView(isSigningIn: true)
+  SignInView(authService: PreviewSignInPerformer(), isSigningIn: true, onSignedIn: { _ in })
 }
 #Preview("エラー") {
-  SignInView(errorMessage: "サインインに失敗しました。もう一度お試しください。")
+  SignInView(
+    authService: PreviewSignInPerformer(),
+    errorMessage: "サインインに失敗しました。もう一度お試しください。",
+    onSignedIn: { _ in }
+  )
 }

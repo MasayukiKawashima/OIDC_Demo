@@ -15,6 +15,12 @@ struct ProfileView: View {
   /// 会員情報。名前は個人情報のため print に渡さない
   let memberInfo: MemberInfo
 
+  // サインアウトしか呼べない形で定義
+  let sessionState: any SignOutPerforming
+
+  /// サインアウトの処理中かどうか（ボタンを2回押せないようにする）
+  @State private var isSigningOut = false
+
   // MARK: - Body
 
   var body: some View {
@@ -45,11 +51,15 @@ struct ProfileView: View {
 
         Section {
           Button(role: .destructive) {
-            // 処理は手順①の組み込みで追加する
+            guard !isSigningOut else { return }
+            isSigningOut = true
+            // 終わると SessionStateModel の状態が変わり、RootView が SignInView に切り替える
+            Task { await sessionState.signOut() }
           } label: {
             Text("サインアウト")
               .frame(maxWidth: .infinity)
           }
+          .disabled(isSigningOut)
         }
       }
       .navigationTitle("プロフィール")
@@ -59,6 +69,14 @@ struct ProfileView: View {
 
 // MARK: - Preview
 
+/// プレビュー用のサインアウトの相手。何もしない。
+private struct PreviewSignOutPerformer: SignOutPerforming {
+  func signOut() async {}
+}
+
 #Preview {
-  ProfileView(memberInfo: MemberInfo(name: "山田 太郎", signedInAt: .now))
+  ProfileView(
+    memberInfo: MemberInfo(name: "山田 太郎", signedInAt: .now),
+    sessionState: PreviewSignOutPerformer()
+  )
 }

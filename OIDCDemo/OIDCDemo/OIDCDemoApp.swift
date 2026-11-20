@@ -10,9 +10,14 @@ import SwiftUI
 @main
 struct OIDCDemoApp: App {
 
+  // MARK: - Properties
+
   // アプリのセッション状態（サインイン状態）を管理するModel
   @State private var sessionState: SessionStateModel
 
+  // MARK: - Init
+
+  // イニシャライザで起動時処理とアプリ内の依存関係の構築を行う
   init() {
     // Keychain の項目の初回削除処理
     // Keychain を読むどの処理よりも先に呼ぶ（false なら起動時の復元をしない）
@@ -25,6 +30,8 @@ struct OIDCDemoApp: App {
     _sessionState = State(initialValue: SessionStateModel(authService: authService))
   }
 
+  // MARK: - Body
+
   var body: some Scene {
     WindowGroup {
       RootView()
@@ -32,8 +39,10 @@ struct OIDCDemoApp: App {
     }
   }
 
-// MARK: - 依存関係の組み立ての起点処理（コンポジションルート）
-// MARK: - 共通
+  // MARK: - 依存関係の組み立ての処理（コンポジションルート）
+
+  // MARK: - 共通
+
   /// バックエンド（モック）とのやり取りの窓口を作る。自前実装とAppAuth版で共通。
   private static func makeBackend() -> BackendClient {
     // モックと IDトークンの確認で、同じ client_id を使う
@@ -41,7 +50,7 @@ struct OIDCDemoApp: App {
     return BackendClient(server: server)
   }
 
-// MARK:  - 自前実装
+  // MARK:  - 自前実装
 
   private static func makeSelfMadeAuthService(backend: BackendClient, restoresSession: Bool) -> AuthService {
     // 自社トークンの保存先は、実装ごとに分ける
@@ -57,7 +66,7 @@ struct OIDCDemoApp: App {
     )
   }
 
-// MARK: - AppAuth-iOS実装
+  // MARK: - AppAuth-iOS実装
 
 }
 

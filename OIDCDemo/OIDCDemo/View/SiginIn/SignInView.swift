@@ -22,9 +22,12 @@ struct SignInView: View {
   /// サインインに失敗したときの文言。キャンセルのとき（サインイン画面を閉じただけ）は表示しない
   @State private var errorMessage: String?
 
-  init(isSigningIn: Bool = false, errorMessage: String? = nil) {
+  private let authService: AuthService?
+
+  init(isSigningIn: Bool = false, errorMessage: String? = nil, authService: AuthService? = nil) {
     _isSigningIn = State(initialValue: isSigningIn)
     _errorMessage = State(initialValue: errorMessage)
+    self.authService = authService
   }
 
   // MARK: - Body
@@ -41,6 +44,10 @@ struct SignInView: View {
         }
         GoogleSignInButton {
           // 処理は手順①の組み込みで追加する
+          Task {
+            // サインインの開始
+            try await startSignIn()
+          }
         }
         .disabled(isSigningIn)
         SignInProgressView(isVisible: isSigningIn)
@@ -51,7 +58,14 @@ struct SignInView: View {
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .background(Color(.systemGroupedBackground))
   }
+
+  // MARK: - Methods
+
+  private func startSignIn() async throws {
+  }
 }
+
+// MARK: - Methods
 
 // MARK: - Preview
 

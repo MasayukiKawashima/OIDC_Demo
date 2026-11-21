@@ -25,8 +25,5 @@ struct RootView: View {
         ProfileView(memberInfo: memberInfo, sessionState: sessionState)
       }
     }
-    .task {
-      await sessionState.restore()
-    }
   }
 }

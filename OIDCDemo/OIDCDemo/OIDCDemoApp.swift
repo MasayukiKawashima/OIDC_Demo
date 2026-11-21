@@ -28,6 +28,11 @@ struct OIDCDemoApp: App {
     let authService = Self.makeSelfMadeAuthService(backend: backend, restoresSession: restoresSession)
     //sessionStateModelの構築
     _sessionState = State(initialValue: SessionStateModel(authService: authService))
+    // sessionStateModelの構築
+    let sessionState = SessionStateModel(authService: authService)
+    _sessionState = State(initialValue: sessionState)
+    // 起動時のサインイン状態の復元
+    Task { await sessionState.restore() }
   }
 
   // MARK: - Body

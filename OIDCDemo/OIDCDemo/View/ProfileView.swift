@@ -16,7 +16,7 @@ struct ProfileView: View {
   let memberInfo: MemberInfo
 
   // サインアウトしか呼べない形で定義
-  let sessionState: any SignOutPerforming
+  let signOutPerformer: any SignOutPerforming
 
   /// サインアウトの処理中かどうか（ボタンを2回押せないようにする）
   @State private var isSigningOut = false
@@ -54,7 +54,7 @@ struct ProfileView: View {
             guard !isSigningOut else { return }
             isSigningOut = true
             // 終わると SessionStateModel の状態が変わり、RootView が SignInView に切り替える
-            Task { await sessionState.signOut() }
+            Task { await signOutPerformer.signOut() }
           } label: {
             Text("サインアウト")
               .frame(maxWidth: .infinity)
@@ -77,6 +77,6 @@ private struct PreviewSignOutPerformer: SignOutPerforming {
 #Preview {
   ProfileView(
     memberInfo: MemberInfo(name: "山田 太郎", signedInAt: .now),
-    sessionState: PreviewSignOutPerformer()
+    signOutPerformer: PreviewSignOutPerformer()
   )
 }

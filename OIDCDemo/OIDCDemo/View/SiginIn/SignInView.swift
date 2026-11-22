@@ -68,7 +68,7 @@ struct SignInView: View {
       defer { isSigningIn = false }
 
       do {
-        try await sessionState.signIn()
+        try await signInPerformer.signIn()
       } catch GoogleTokenProviderError.canceled {
         return
       } catch {
@@ -97,13 +97,13 @@ private struct PreviewSignInPerformer: SignInPerforming {
 private struct PreviewSignInError: Error {}
 
 #Preview("サインイン前") {
-  SignInView(sessionState: PreviewSignInPerformer())
+  SignInView(signInPerformer: PreviewSignInPerformer())
 }
 #Preview("処理中") {
-  SignInView(isSigningIn: true, sessionState: PreviewSignInPerformer())
+  SignInView(isSigningIn: true, signInPerformer: PreviewSignInPerformer())
 }
 #Preview("エラー") {
   SignInView(
-    errorMessage: "サインインに失敗しました。もう一度お試しください。", sessionState: PreviewSignInPerformer()
+    errorMessage: "サインインに失敗しました。もう一度お試しください。", signInPerformer: PreviewSignInPerformer()
   )
 }

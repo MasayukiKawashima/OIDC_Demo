@@ -63,6 +63,9 @@ struct SignInView: View {
     // サイン中にしてボタンを無効化
     isSigningIn = true
 
+    // エラーメッセージ初期化
+    errorMessage = nil
+
     Task {
       // サインインが終わったらボタンを有効化
       defer { isSigningIn = false }
@@ -70,9 +73,10 @@ struct SignInView: View {
       do {
         try await signInPerformer.signIn()
       } catch GoogleTokenProviderError.canceled {
-        return
+        print("[SignIn] キャンセル")
       } catch {
-        print(error.localizedDescription)
+        print("[SignIn] 失敗（\(type(of: error))）")
+        errorMessage = "サインインに失敗しました。もう一度お試しください。"
       }
     }
   }

@@ -20,7 +20,7 @@ struct RootView: View {
       case .restoring:
         ProgressView()
       case .signedOut:
-        SignInView(sessionState: sessionState)
+        SignInView(signInPerformer: sessionState)
       case .signedIn(let memberInfo):
         ProfileView(memberInfo: memberInfo, sessionState: sessionState)
       }

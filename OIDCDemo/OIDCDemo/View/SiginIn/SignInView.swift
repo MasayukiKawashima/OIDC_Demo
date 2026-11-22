@@ -23,12 +23,12 @@ struct SignInView: View {
   @State private var errorMessage: String?
 
   // SignInのみしかできない形で依存
-  private let sessionState: any SignInPerforming
+  private let signInPerformer: any SignInPerforming
 
-  init(isSigningIn: Bool = false, errorMessage: String? = nil, sessionState: any SignInPerforming) {
+  init(isSigningIn: Bool = false, errorMessage: String? = nil, signInPerformer: any SignInPerforming) {
     _isSigningIn = State(initialValue: isSigningIn)
     _errorMessage = State(initialValue: errorMessage)
-    self.sessionState = sessionState
+    self.signInPerformer = signInPerformer
   }
 
   // MARK: - Body

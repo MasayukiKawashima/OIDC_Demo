@@ -1,5 +1,5 @@
 //
-//  SignInStateManager.swift
+//  SessionTokenManager.swift
 //  OIDCDemo
 //
 //  Created by 川島真之 on 2026/11/09.
@@ -10,7 +10,7 @@ import Foundation
 /// - サインイン状態を変える処理（バックエンドへのサインイン、トークンの保存・読み込み、リフレッシュ、サインアウト）を受け持つ
 /// - サインインが必要な API は、withValidAccessToken で有効なアクセストークンを借りて、呼び出し側が呼ぶ。個々の API（会員情報など）は知らない
 /// - Google とのやり取り（IDトークンを得るまで）は行わない。それは GoogleTokenProvider が受け持つ
-actor SignInStateManager {
+actor SessionTokenManager {
   private let backend: any BackendClientProtocol
   private let tokenStore: SessionTokenStore
   /// アクセストークンの期限のこの秒数前から、期限切れとみなして先にリフレッシュする
@@ -44,14 +44,14 @@ actor SignInStateManager {
     do {
       result = try await backend.signIn(SignInRequest(idToken: idToken, name: name))
     } catch BackendError.invalidIDToken {
-      print("[SignInState] signIn: 失敗（バックエンドが IDトークンを受け付けなかった）")
-      throw SignInStateError.signInRejected
+      print("[SessionToken] signIn: 失敗（バックエンドが IDトークンを受け付けなかった）")
+      throw SessionError.signInRejected
     } catch BackendError.invalidName {
-      print("[SignInState] signIn: 失敗（バックエンドが名前を受け付けなかった）")
-      throw SignInStateError.signInRejected
+      print("[SessionToken] signIn: 失敗（バックエンドが名前を受け付けなかった）")
+      throw SessionError.signInRejected
     }
     try replaceTokens(with: result.tokens.sessionTokens())
-    print("[SignInState] signIn: 成功（トークンを保存した）")
+    print("[SessionToken] signIn: 成功（トークンを保存した）")
     return result.memberStatus
   }
 
@@ -61,12 +61,12 @@ actor SignInStateManager {
   /// - Returns: トークンがあれば true（サインイン状態）、なければ false
   func restore() throws -> Bool {
     guard let saved = try tokenStore.load() else {
-      print("[SignInState] restore: 保存されたトークンなし（サインインしていない）")
+      print("[SessionToken] restore: 保存されたトークンなし（サインインしていない）")
       return false
     }
     tokens = saved
     generation += 1
-    print("[SignInState] restore: 保存されたトークンを読み込んだ")
+    print("[SessionToken] restore: 保存されたトークンを読み込んだ")
     return true
   }
 
@@ -90,19 +90,19 @@ actor SignInStateManager {
       // リフレッシュトークンが無効だった場合
       // 一回だけリフレッシュして再実行
     } catch BackendError.unauthorized {
-      print("[SignInState] 401。リフレッシュして1回だけ貸し直します")
+      print("[SessionToken] 401。リフレッシュして1回だけ貸し直します")
       let refreshed = try await refreshTokens(ifGenerationIs: currentGeneration)
       do {
         let result = try await operation(refreshed.accessToken)
-        print("[SignInState] 貸し直したトークンで成功した")
+        print("[SessionToken] 貸し直したトークンで成功した")
         return result
 
         // 再実行してもunauthorizedが投げられた場合
         // トークンを削除してセッション（セッションとはサインイン状態を維持している状態）の終了
       } catch BackendError.unauthorized {
-        print("[SignInState] 貸し直しても 401。セッションを終了します")
+        print("[SessionToken] 貸し直しても 401。セッションを終了します")
         try clearTokens()
-        throw SignInStateError.sessionExpired
+        throw SessionError.sessionExpired
       }
     }
   }
@@ -115,14 +115,14 @@ actor SignInStateManager {
       do {
         try await backend.signOut(refreshToken: current.refreshToken)
       } catch {
-        print("[SignInState] signOut: バックエンドのサインアウトに失敗（\(type(of: error))）。ローカルの削除は続ける")
+        print("[SessionToken] signOut: バックエンドのサインアウトに失敗（\(type(of: error))）。ローカルの削除は続ける")
       }
     }
     do {
       try clearTokens()
-      print("[SignInState] signOut: トークンを削除した")
+      print("[SessionToken] signOut: トークンを削除した")
     } catch {
-      print("[SignInState] signOut: トークンの削除に失敗（\(type(of: error))）")
+      print("[SessionToken] signOut: トークンの削除に失敗（\(type(of: error))）")
     }
   }
 
@@ -131,11 +131,11 @@ actor SignInStateManager {
   // MARK: 有効なトークンの取得
 
   private func validTokens() async throws -> (SessionTokens, Int) {
-    guard let current = tokens else { throw SignInStateError.notSignedIn }
+    guard let current = tokens else { throw SessionError.notSignedIn }
     if Date().addingTimeInterval(refreshMargin) < current.expiresAt {
       return (current, generation)
     }
-    print("[SignInState] アクセストークンの期限が近い（または切れている）ため、先にリフレッシュします")
+    print("[SessionToken] アクセストークンの期限が近い（または切れている）ため、先にリフレッシュします")
     let refreshed = try await refreshTokens(ifGenerationIs: generation)
     return (refreshed, generation)
   }
@@ -147,14 +147,14 @@ actor SignInStateManager {
   private func refreshTokens(ifGenerationIs expected: Int) async throws -> SessionTokens {
     // 他の処理ですでに入れ替わっていれば、それを使う（使用済みのリフレッシュトークンを送らない）
     if generation != expected {
-      guard let tokens else { throw SignInStateError.sessionExpired }
+      guard let tokens else { throw SessionError.sessionExpired }
       return tokens
     }
     // 実行中のリフレッシュがあれば、その結果を待つ
     if let refreshTask {
       return try await refreshTask.value
     }
-    guard let current = tokens else { throw SignInStateError.notSignedIn }
+    guard let current = tokens else { throw SessionError.notSignedIn }
 
     // actor の中で作った Task は actor の上で動くので、tokens などを直接書き換えられる
     let task = Task<SessionTokens, Error> {
@@ -163,12 +163,12 @@ actor SignInStateManager {
         let response = try await self.backend.refresh(refreshToken: current.refreshToken)
         let newTokens = response.sessionTokens()
         try self.replaceTokens(with: newTokens)
-        print("[SignInState] refresh: 成功（新しいトークンを保存した）")
+        print("[SessionToken] refresh: 成功（新しいトークンを保存した）")
         return newTokens
       } catch BackendError.invalidRefreshToken {
-        print("[SignInState] refresh: 失敗（リフレッシュトークンが無効）。トークンを削除します")
+        print("[SessionToken] refresh: 失敗（リフレッシュトークンが無効）。トークンを削除します")
         try? self.clearTokens()
-        throw SignInStateError.sessionExpired
+        throw SessionError.sessionExpired
       }
     }
     refreshTask = task

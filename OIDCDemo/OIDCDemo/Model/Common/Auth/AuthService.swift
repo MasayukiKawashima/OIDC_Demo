@@ -8,8 +8,8 @@
 import Foundation
 
 // 認証処理の共通の窓口（サインイン、サインアウト、起動時の復元、会員情報の取得）。
-/// - IDトークンを得る部分は GoogleTokenProvider に、サインイン状態の管理は SignInStateManager に任せる
-/// - サインインが必要な API（会員情報）は、SignInStateManager.withValidAccessToken で有効なアクセストークンを借りて呼ぶ
+/// - IDトークンを得る部分は GoogleTokenProvider に、サインイン状態の管理は SessionTokenManager に任せる
+/// - サインインが必要な API（会員情報）は、SessionTokenManager.withValidAccessToken で有効なアクセストークンを借りて呼ぶ
 /// 自前実装と AppAuth版は、GoogleTokenProvider と保存先（KeychainService）が違う AuthService として作る。
 @MainActor
 final class AuthService {
@@ -17,8 +17,8 @@ final class AuthService {
   private let tokenProvider: any GoogleTokenProvider
   private let profileClient: any GoogleProfileClientProtocol
   private let revocationClient: any GoogleTokenRevocationClientProtocol
-  private let signInState: SignInStateManager
-  /// サインインが必要な API を呼ぶためのバックエンド（SignInStateManager に渡したものと同じ）
+  private let sessionTokenManager: SessionTokenManager
+  /// サインインが必要な API を呼ぶためのバックエンド（SessionTokenManager に渡したものと同じ）
   private let backend: any BackendClientProtocol
   /// 起動時の復元を行うか（FirstLaunchKeychainReset が削除に失敗した場合は false）
   private let restoresSession: Bool
@@ -26,13 +26,13 @@ final class AuthService {
   init(tokenProvider: any GoogleTokenProvider,
        profileClient: any GoogleProfileClientProtocol,
        revocationClient: any GoogleTokenRevocationClientProtocol,
-       signInState: SignInStateManager,
+       sessionTokenManager: SessionTokenManager,
        backend: any BackendClientProtocol,
        restoresSession: Bool) {
     self.tokenProvider = tokenProvider
     self.profileClient = profileClient
     self.revocationClient = revocationClient
-    self.signInState = signInState
+    self.sessionTokenManager = sessionTokenManager
     self.backend = backend
     self.restoresSession = restoresSession
   }
@@ -45,12 +45,12 @@ final class AuthService {
       print("[Auth] restore: 前のインストールのデータが残っている可能性があるため、復元しない")
       return nil
     }
-    guard try await signInState.restore() else {
+    guard try await sessionTokenManager.restore() else {
       return nil
     }
     do {
       return try await memberInfo()
-    } catch SignInStateError.sessionExpired {
+    } catch SessionError.sessionExpired {
       print("[Auth] restore: サインイン状態が無効（サインインし直しが必要）")
       return nil
     }
@@ -61,7 +61,7 @@ final class AuthService {
   /// 会員情報を取得する（サインインが必要な API）。
   func memberInfo() async throws -> MemberInfo {
     let backend = self.backend
-    let info = try await signInState.withValidAccessToken { accessToken in
+    let info = try await sessionTokenManager.withValidAccessToken { accessToken in
       try await backend.fetchMemberInfo(accessToken: accessToken)
     }
     print("[Auth] memberInfo: 取得できた")
@@ -105,7 +105,7 @@ final class AuthService {
     let name = try nameResult.get()
 
     //　自社バックエンドにアクセスして会員情報の取得と自社トークンの保存
-    let status = try await signInState.signIn(idToken: googleTokens.idToken, name: name)
+    let status = try await sessionTokenManager.signIn(idToken: googleTokens.idToken, name: name)
     print("[Auth] signIn: 成功（\(status == .existing ? "既存会員" : "新規登録")）")
     return try await memberInfo()
   }
@@ -113,6 +113,6 @@ final class AuthService {
   // MARK: - サインアウト
 
   func signOut() async {
-    await signInState.signOut()
+    await sessionTokenManager.signOut()
   }
 }

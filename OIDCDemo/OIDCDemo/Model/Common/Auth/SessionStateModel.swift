@@ -9,7 +9,7 @@ import Foundation
 import Observation
 
 /// 画面に見せるサインイン状態（セッションの有無と会員情報）。状態を変えるのはこのクラスだけ。
-/// 自社トークンもGoogleのトークンも持たない。トークンを使った状態の管理は SignInStateManager が行う。
+/// 自社トークンもGoogleのトークンも持たない。トークンを使った状態の管理は SessionTokenManager が行う。
 @Observable
 @MainActor
 final class SessionStateModel {

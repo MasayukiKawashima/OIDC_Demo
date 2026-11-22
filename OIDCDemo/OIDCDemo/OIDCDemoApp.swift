@@ -59,13 +59,13 @@ struct OIDCDemoApp: App {
 
   private static func makeSelfMadeAuthService(backend: BackendClient, restoresSession: Bool) -> AuthService {
     // 自社トークンの保存先は、実装ごとに分ける
-    let signInState = SignInStateManager(backend: backend, service: .selfMade)
+    let sessionTokenManager = SessionTokenManager(backend: backend, service: .selfMade)
 
     return AuthService(
       tokenProvider: SelfMadeGoogleTokenProvider(),
       profileClient: GooglePeopleAPIClient(),
       revocationClient: GoogleTokenRevocationClient(),
-      signInState: signInState,
+      sessionTokenManager: sessionTokenManager,
       backend: backend,
       restoresSession: restoresSession
     )

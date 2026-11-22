@@ -22,7 +22,7 @@ struct RootView: View {
       case .signedOut:
         SignInView(signInPerformer: sessionState)
       case .signedIn(let memberInfo):
-        ProfileView(memberInfo: memberInfo, sessionState: sessionState)
+        ProfileView(memberInfo: memberInfo, signOutPerformer: sessionState)
       }
     }
   }

@@ -7,7 +7,7 @@
 
 import Foundation
 
-// 認証処理の共通の窓口（サインイン、サインアウト、起動時の復元、会員情報の取得）。
+/// 認証処理の共通の窓口（サインイン、サインアウト、起動時の復元、会員情報の取得）。
 /// - IDトークンを得る部分は GoogleTokenProvider に、自社トークンの管理は SessionTokenManager に任せる
 /// - サインインが必要な API（会員情報）は、SessionTokenManager.withValidAccessToken で有効なアクセストークンを借りて呼ぶ
 /// 自前実装と AppAuth版は、GoogleTokenProvider と保存先（KeychainService）が違う AuthService として作る。
@@ -71,7 +71,7 @@ final class AuthService {
   // MARK: - サインイン
 
   /// Google でサインインし、バックエンドにサインインして、会員情報を返す。
-  /// // Google のトークンはこの関数の中だけで使い、終われば破棄される（保存しない）
+  /// Google のトークンはこの関数の中だけで使い、終われば破棄される（保存しない）
   func signIn() async throws -> MemberInfo {
 
     // 各種トークンの取得

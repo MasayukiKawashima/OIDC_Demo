@@ -4,10 +4,6 @@
 //
 //  Created by 川島真之 on 2026/11/19.
 //
-//
-//  SignInView.swift
-//  OIDCDemo
-//
 
 import SwiftUI
 
@@ -58,7 +54,7 @@ struct SignInView: View {
 
   // MARK: - Methods
 
-  private func startSignIn()  {
+  private func startSignIn() {
     guard !isSigningIn else { return }
     // サイン中にしてボタンを無効化
     isSigningIn = true

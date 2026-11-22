@@ -8,7 +8,7 @@
 import Foundation
 
 // 認証処理の共通の窓口（サインイン、サインアウト、起動時の復元、会員情報の取得）。
-/// - IDトークンを得る部分は GoogleTokenProvider に、サインイン状態の管理は SessionTokenManager に任せる
+/// - IDトークンを得る部分は GoogleTokenProvider に、自社トークンの管理は SessionTokenManager に任せる
 /// - サインインが必要な API（会員情報）は、SessionTokenManager.withValidAccessToken で有効なアクセストークンを借りて呼ぶ
 /// 自前実装と AppAuth版は、GoogleTokenProvider と保存先（KeychainService）が違う AuthService として作る。
 @MainActor

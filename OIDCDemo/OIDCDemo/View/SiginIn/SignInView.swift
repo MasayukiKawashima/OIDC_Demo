@@ -44,11 +44,7 @@ struct SignInView: View {
           SignInErrorBanner(message: errorMessage)
         }
         GoogleSignInButton {
-          // 処理は手順①の組み込みで追加する
-          Task {
-            // サインインの開始
-            try await startSignIn()
-          }
+          startSignIn()
         }
         .disabled(isSigningIn)
         SignInProgressView(isVisible: isSigningIn)
@@ -62,11 +58,25 @@ struct SignInView: View {
 
   // MARK: - Methods
 
-  private func startSignIn() async throws {
+  private func startSignIn()  {
+    guard !isSigningIn else { return }
+    // サイン中にしてボタンを無効化
+    isSigningIn = true
+
+    Task {
+      // サインインが終わったらボタンを有効化
+      defer { isSigningIn = false }
+
+      do {
+        try await sessionState.signIn()
+      } catch GoogleTokenProviderError.canceled {
+        return
+      } catch {
+        print(error.localizedDescription)
+      }
+    }
   }
 }
-
-// MARK: - Methods
 
 // MARK: - Preview
 

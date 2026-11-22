@@ -6,10 +6,12 @@
 //
 import Foundation
 
-/// 自社トークンを使って、アプリのサインイン状態を管理する（自前実装・AppAuth版で共通）。
-/// - サインイン状態を変える処理（バックエンドへのサインイン、トークンの保存・読み込み、リフレッシュ、サインアウト）を受け持つ
+/// 自社トークン（モックが発行したトークン）を管理する（自前実装・AppAuth版で共通）。
+/// - 自社トークンの保存・読み込み・リフレッシュ・削除と、それに伴うバックエンドとのやり取り（サインイン、リフレッシュ、サインアウト）を受け持つ
+/// - 自社トークンがあることが、アプリがサインインしている状態に当たる
 /// - サインインが必要な API は、withValidAccessToken で有効なアクセストークンを借りて、呼び出し側が呼ぶ。個々の API（会員情報など）は知らない
 /// - Google とのやり取り（IDトークンを得るまで）は行わない。それは GoogleTokenProvider が受け持つ
+/// - 画面に見せるサインイン状態は持たない。それは SessionStateModel が受け持つ
 actor SessionTokenManager {
   private let backend: any BackendClientProtocol
   private let tokenStore: SessionTokenStore

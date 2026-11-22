@@ -26,8 +26,6 @@ struct OIDCDemoApp: App {
     let backend = Self.makeBackend()
     // authServiceの構築
     let authService = Self.makeSelfMadeAuthService(backend: backend, restoresSession: restoresSession)
-    //sessionStateModelの構築
-    _sessionState = State(initialValue: SessionStateModel(authService: authService))
     // sessionStateModelの構築
     let sessionState = SessionStateModel(authService: authService)
     _sessionState = State(initialValue: sessionState)

@@ -10,4 +10,8 @@ import Foundation
 nonisolated enum GoogleDiscoveryError: Error {
 
   case network
+  case invalidResponse
+  case unexpectedStatus(Int)
+  case invalidIssuer
+  case invalidEndpoint
 }

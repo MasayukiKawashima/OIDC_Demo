@@ -7,11 +7,14 @@
 
 import Foundation
 
-private struct DiscoveryDocument: Decodable {
+struct DiscoveryDocument: Decodable {
   let issuer: String
   let authorizationEndpoint: String
   let tokenEndpoint: String
-  // CodingKeys でスネークケースのキーに対応させる
-
   
+  private enum CodingKeys: String, CodingKey {
+    case issuer
+    case authorizationEndpoint = "authorization_endpoint"
+    case tokenEndpoint = "token_endpoint"
+  }
 }

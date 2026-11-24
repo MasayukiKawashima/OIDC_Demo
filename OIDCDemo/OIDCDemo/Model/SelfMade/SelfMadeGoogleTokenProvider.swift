@@ -21,9 +21,17 @@ struct SelfMadeGoogleTokenProvider: GoogleTokenProvider {
   // MARK: - fetchVerifiedTokens
 
   func fetchVerifiedTokens() async throws -> GoogleTokens {
-    print("SelfMadeGoogleTokenProviderのfetchVerifiedTokensが呼ばれた")
 
+    // ディスカバリへのリクエスト。各種エンドポイントを取得。
     let googleEndpoints = try await discoveryClient.fetchEndpoints()
+
+    // stateとnonceの作成
+    let state = try SecureRandom.base64URLString(byteCount: 32)
+    let nonce = try SecureRandom.base64URLString(byteCount: 32)
+
+    // PKCEの構成
+    let pkce: PKCE = try PKCE()
+
 
     let idToken = Secret("test")
     let accessToken = Secret("test")

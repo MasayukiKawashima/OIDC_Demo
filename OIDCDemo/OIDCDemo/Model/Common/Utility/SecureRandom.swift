@@ -8,11 +8,6 @@
 import Foundation
 import Security
 
-/// 乱数の生成に失敗したときのエラー。
-nonisolated enum SecureRandomError: Error {
-  case failed(OSStatus)
-}
-
 /// 暗号学的に安全な乱数（推測できない乱数）を作る。
 /// トークン、PKCE の code_verifier、state、nonce など、推測されてはいけない値に使う。
 nonisolated enum SecureRandom {

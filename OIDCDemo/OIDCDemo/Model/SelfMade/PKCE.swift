@@ -12,9 +12,7 @@ nonisolated struct PKCE: Sendable {
   // MARK: - Properties
 
   let verifier: Secret
-  /// code_challenge
   let challenge: String
-  /// code_challenge_method
   let method = "S256"
 
   // MARK: - Init

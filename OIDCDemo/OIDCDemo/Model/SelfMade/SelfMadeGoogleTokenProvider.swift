@@ -31,9 +31,20 @@ struct SelfMadeGoogleTokenProvider: GoogleTokenProvider {
     // stateとnonceの作成
     let state = try SecureRandom.base64URLString(byteCount: 32)
     let nonce = try SecureRandom.base64URLString(byteCount: 32)
-
     // PKCEの構成
     let pkce: PKCE = try PKCE()
+
+    // リダイレクト URI。認可リクエストとトークン交換で使用
+    let redirectURI = "\(AppConfig.googleReversedClientID):/oauth2redirect"
+    // 認可リクエストを行うための環境構築
+    let authorizationSession = GoogleAuthorizationSession(authorizationEndpoint: googleEndpoints.authorizationEndpoint,
+                                                 redirectURI: redirectURI,
+                                                 state: state,
+                                                 nonce: nonce,
+                                                 codeChallenge: pkce.challenge,
+                                                 codeChallengeMethod: pkce.method)
+    // 認可リクエスト開始。ブラウザでサインイン・同意してもらい、戻りのURLを受け取る
+    let callBackURI = try await authorizationSession.start()
 
 
     let idToken = Secret("test")

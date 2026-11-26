@@ -5,7 +5,8 @@
 //  Created by 川島真之 on 2026/11/26.
 //
 
-import Foundation
+import AuthenticationServices
+import UIKit
 
 /// 認可リクエストを行うクラス
 final class GoogleAuthorizationSession: NSObject {
@@ -20,6 +21,7 @@ final class GoogleAuthorizationSession: NSObject {
   private let codeChallengeMethod: String
   private let prefersEphemeral: Bool
 
+  private var session: ASWebAuthenticationSession?
   private var continuation: CheckedContinuation<URL, any Error>?
   private var anchor: ASPresentationAnchor?
 
@@ -41,6 +43,8 @@ final class GoogleAuthorizationSession: NSObject {
     self.codeChallenge = codeChallenge
     self.codeChallengeMethod = codeChallengeMethod
     self.prefersEphemeral = prefersEphemeral
+
+    super.init()
   }
 
   // MARK: - Methods

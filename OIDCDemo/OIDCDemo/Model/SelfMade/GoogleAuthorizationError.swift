@@ -9,4 +9,9 @@ import Foundation
 
 nonisolated enum GoogleAuthorizationError: Error {
   case invalidAuthorizationURL
+  case invalidRedirectURI
+  case noPresentationAnchor
+  case alreadyStarted
+  case cannotStart
+  case missingCallbackURL
 }

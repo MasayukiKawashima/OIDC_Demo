@@ -60,7 +60,7 @@ struct OIDCDemoApp: App {
     let sessionTokenManager = SessionTokenManager(backend: backend, service: .selfMade)
 
     return AuthService(
-      tokenProvider: SelfMadeGoogleTokenProvider(),
+      tokenProvider: SelfMadeGoogleTokenProvider(prefersEphemeral: false),
       profileClient: GooglePeopleAPIClient(),
       revocationClient: GoogleTokenRevocationClient(),
       sessionTokenManager: sessionTokenManager,

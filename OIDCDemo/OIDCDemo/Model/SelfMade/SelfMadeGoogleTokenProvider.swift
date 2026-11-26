@@ -12,10 +12,13 @@ struct SelfMadeGoogleTokenProvider: GoogleTokenProvider {
   // MARK: - Properties
 
   private let discoveryClient: any GoogleDiscoveryClientProtocol
+  // ブラウザで Safari と Cookie を共有しない（エフェメラル）かどうか
+  private let prefersEphemeral: Bool
 
     // MARK: - Init
-  init(discoveryClient: any GoogleDiscoveryClientProtocol = GoogleDiscoveryClient()) {
+  init(discoveryClient: any GoogleDiscoveryClientProtocol = GoogleDiscoveryClient(), prefersEphemeral: Bool) {
     self.discoveryClient = discoveryClient
+    self.prefersEphemeral = prefersEphemeral
   }
 
   // MARK: - fetchVerifiedTokens

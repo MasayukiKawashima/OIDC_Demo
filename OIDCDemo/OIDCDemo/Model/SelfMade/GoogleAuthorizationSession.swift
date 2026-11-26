@@ -106,7 +106,7 @@ final class GoogleAuthorizationSession: NSObject {
     return callbackURL
   }
 
-  // MARK: - Completion
+  // MARK: - ASWebAuthenticationSession Completion
 
   /// 完了ハンドラーの結果を、成功・失敗に振り分ける
   private func handleCompletion(callbackURL: URL?, error: (any Error)?) {

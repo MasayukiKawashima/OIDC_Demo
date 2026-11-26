@@ -15,7 +15,7 @@ struct SelfMadeGoogleTokenProvider: GoogleTokenProvider {
   // ブラウザで Safari と Cookie を共有しない（エフェメラル）かどうか
   private let prefersEphemeral: Bool
 
-    // MARK: - Init
+  // MARK: - Init
   init(discoveryClient: any GoogleDiscoveryClientProtocol = GoogleDiscoveryClient(), prefersEphemeral: Bool) {
     self.discoveryClient = discoveryClient
     self.prefersEphemeral = prefersEphemeral
@@ -38,11 +38,12 @@ struct SelfMadeGoogleTokenProvider: GoogleTokenProvider {
     let redirectURI = "\(AppConfig.googleReversedClientID):/oauth2redirect"
     // 認可リクエストを行うための環境構築
     let authorizationSession = GoogleAuthorizationSession(authorizationEndpoint: googleEndpoints.authorizationEndpoint,
-                                                 redirectURI: redirectURI,
-                                                 state: state,
-                                                 nonce: nonce,
-                                                 codeChallenge: pkce.challenge,
-                                                 codeChallengeMethod: pkce.method)
+                                                          redirectURI: redirectURI,
+                                                          state: state,
+                                                          nonce: nonce,
+                                                          codeChallenge: pkce.challenge,
+                                                          codeChallengeMethod: pkce.method,
+                                                          prefersEphemeral: prefersEphemeral)
     // 認可リクエスト開始。ブラウザでサインイン・同意してもらい、戻りのURLを受け取る
     let callBackURI = try await authorizationSession.start()
 

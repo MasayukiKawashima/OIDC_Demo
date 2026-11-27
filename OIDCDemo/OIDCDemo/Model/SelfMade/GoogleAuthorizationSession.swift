@@ -38,7 +38,6 @@ final class GoogleAuthorizationSession: NSObject {
     codeChallenge: String,
     codeChallengeMethod: String,
     prefersEphemeral: Bool = false
-
   ) {
     self.authorizationEndpoint = authorizationEndpoint
     self.redirectURI = redirectURI
@@ -54,7 +53,7 @@ final class GoogleAuthorizationSession: NSObject {
   // MARK: - Methods
   // MARK: - Start
 
-  /// ブラウザで認可リクエストを行い、リダイレクトで戻ってきた URL を返す。
+  /// 「リダイレクトで戻ってきた URL を確認し、認可コードを返す。」
   func start() async throws -> Secret {
     // 同じインスタンスでの2回目の呼び出しを止める
     guard !hasStarted else {
@@ -108,6 +107,7 @@ final class GoogleAuthorizationSession: NSObject {
     // 戻りURLの各種検証を行い、問題がなければ認可コードをリターン
     do {
       let code = try authorizationCode(from: callbackURL)
+      print("[Authorization] 成功")
       return code
     } catch {
       print("[Authorization] 失敗（\(error)）")

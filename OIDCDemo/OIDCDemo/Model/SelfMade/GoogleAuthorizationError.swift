@@ -16,4 +16,7 @@ nonisolated enum GoogleAuthorizationError: Error {
   case missingCallbackURL
   case duplicateParameter
   case authorizationFailed(String)
+  case unexpectedCallback
+  case stateMismatch
+  case missingCode
 }

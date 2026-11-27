@@ -55,7 +55,7 @@ final class GoogleAuthorizationSession: NSObject {
   // MARK: - Start
 
   /// ブラウザで認可リクエストを行い、リダイレクトで戻ってきた URL を返す。
-  func start() async throws -> URL {
+  func start() async throws -> Secret {
     // 同じインスタンスでの2回目の呼び出しを止める
     guard !hasStarted else {
       throw GoogleAuthorizationError.alreadyStarted
@@ -104,14 +104,15 @@ final class GoogleAuthorizationSession: NSObject {
         finish(with: .failure(GoogleAuthorizationError.cannotStart))
       }
     }
-    // redirect_uriの検証
 
-    // stateの検証
-
-    // errorの有無を確認
-    
-    // codeを取り出す
-    return callbackURL
+    // 戻りURLの各種検証を行い、問題がなければ認可コードをリターン
+    do {
+      let code = try authorizationCode(from: callbackURL)
+      return code
+    } catch {
+      print("[Authorization] 失敗（\(error)）")
+      throw error
+    }
   }
 
   // MARK: - ASWebAuthenticationSession Completion
@@ -135,6 +136,34 @@ final class GoogleAuthorizationSession: NSObject {
   }
 
   // MARK: - 検証
+  /// 戻りURLの検証と認可コードの抽出
+  private func authorizationCode(from callbackURL: URL) throws -> Secret {
+    // 戻りURLがredirect_uriと一致するか
+    guard matchesRedirectURI(callbackURL: callbackURL),
+          let components = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false) else {
+      throw GoogleAuthorizationError.unexpectedCallback
+    }
+    print("[Authorization] redirect_uri: 一致")
+    let queryItems = components.queryItems ?? []
+
+    // stateの照合
+    guard try queryValue(named: "state", in: queryItems) == state else {
+      throw GoogleAuthorizationError.stateMismatch
+    }
+    print("[Authorization] state: OK")
+
+    // errorパラメータの有無の確認
+    if let errorCode = try queryValue(named: "error", in: queryItems) {
+      throw GoogleAuthorizationError.authorizationFailed(errorCode)
+    }
+    // codeの取り出し
+    guard let code = try queryValue(named: "code", in: queryItems), !code.isEmpty else {
+      throw GoogleAuthorizationError.missingCode
+    }
+    // Secretで包んでReturn
+    return Secret(code)
+  }
+
   /// 戻ってきた URL が、クエリとフラグメントを除いて redirect_uri と一致するか
   private func matchesRedirectURI(callbackURL: URL) -> Bool {
 
@@ -150,7 +179,6 @@ final class GoogleAuthorizationSession: NSObject {
     // 検証
     return target.string == expectedURI
   }
-
 
   // MARK: - HelperMethods
 
@@ -217,7 +245,6 @@ final class GoogleAuthorizationSession: NSObject {
   private func queryValue(named name: String, in queryItems: [URLQueryItem]) throws -> String? {
     let matches = queryItems.filter { $0.name == name }
     guard matches.count <= 1 else {
-      print("[Authorization] 失敗（パラメータが重複: \(name)）")
       throw GoogleAuthorizationError.duplicateParameter
     }
     return matches.first?.value

@@ -45,8 +45,9 @@ struct SelfMadeGoogleTokenProvider: GoogleTokenProvider {
                                                           codeChallenge: pkce.challenge,
                                                           codeChallengeMethod: pkce.method,
                                                           prefersEphemeral: prefersEphemeral)
-    // 認可リクエスト開始。ブラウザでサインイン・同意してもらい、戻りのURLを受け取る
-    let callBackURI = try await authorizationSession.start()
+
+    // 認可リクエスト開始。ブラウザでサインイン・同意してもらい、認可コードを受け取る
+    let authorizationCode: Secret = try await authorizationSession.start()
 
 
     let idToken = Secret("test")

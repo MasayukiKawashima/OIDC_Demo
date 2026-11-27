@@ -14,4 +14,6 @@ nonisolated enum GoogleAuthorizationError: Error {
   case alreadyStarted
   case cannotStart
   case missingCallbackURL
+  case duplicateParameter
+  case authorizationFailed(String)
 }

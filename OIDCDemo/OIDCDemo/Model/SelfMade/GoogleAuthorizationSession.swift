@@ -38,6 +38,7 @@ final class GoogleAuthorizationSession: NSObject {
     codeChallenge: String,
     codeChallengeMethod: String,
     prefersEphemeral: Bool = false
+
   ) {
     self.authorizationEndpoint = authorizationEndpoint
     self.redirectURI = redirectURI
@@ -103,6 +104,13 @@ final class GoogleAuthorizationSession: NSObject {
         finish(with: .failure(GoogleAuthorizationError.cannotStart))
       }
     }
+    // redirect_uriの検証
+
+    // stateの検証
+
+    // errorの有無を確認
+    
+    // codeを取り出す
     return callbackURL
   }
 
@@ -113,6 +121,9 @@ final class GoogleAuthorizationSession: NSObject {
     if let callbackURL {
       print("[Authorization] コールバックを受信")
       finish(with: .success(callbackURL))
+    } else if let sessionError = error as? ASWebAuthenticationSessionError, sessionError.code == .canceledLogin {
+      print("[Authorization] キャンセル")
+      finish(with: .failure(GoogleTokenProviderError.canceled))
     } else if let error {
       let nsError = error as NSError
       print("[Authorization] 失敗（\(nsError.domain) \(nsError.code)）")
@@ -122,6 +133,24 @@ final class GoogleAuthorizationSession: NSObject {
       finish(with: .failure(GoogleAuthorizationError.missingCallbackURL))
     }
   }
+
+  // MARK: - 検証
+  /// 戻ってきた URL が、クエリとフラグメントを除いて redirect_uri と一致するか
+  private func matchesRedirectURI(callbackURL: URL) -> Bool {
+
+    // queryとfragmentを取り除くため、一旦検証対象のURLをURLComponentsに変換
+    guard var target = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false) else {
+      return false
+    }
+    target.query = nil
+    target.fragment = nil
+
+    let expectedURI = self.redirectURI
+
+    // 検証
+    return target.string == expectedURI
+  }
+
 
   // MARK: - HelperMethods
 
@@ -181,6 +210,17 @@ final class GoogleAuthorizationSession: NSObject {
     continuation = nil
     session = nil
     anchor = nil
+  }
+
+  /// クエリから、指定した名前のパラメータの値を取り出す。
+  /// ない場合は nil、同じ名前が2つ以上ある場合は失敗にする。
+  private func queryValue(named name: String, in queryItems: [URLQueryItem]) throws -> String? {
+    let matches = queryItems.filter { $0.name == name }
+    guard matches.count <= 1 else {
+      print("[Authorization] 失敗（パラメータが重複: \(name)）")
+      throw GoogleAuthorizationError.duplicateParameter
+    }
+    return matches.first?.value
   }
 }
 

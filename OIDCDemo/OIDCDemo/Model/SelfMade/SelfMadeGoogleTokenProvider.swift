@@ -16,6 +16,7 @@ struct SelfMadeGoogleTokenProvider: GoogleTokenProvider {
   private let prefersEphemeral: Bool
 
   // MARK: - Init
+
   init(discoveryClient: any GoogleDiscoveryClientProtocol = GoogleDiscoveryClient(), prefersEphemeral: Bool) {
     self.discoveryClient = discoveryClient
     self.prefersEphemeral = prefersEphemeral
